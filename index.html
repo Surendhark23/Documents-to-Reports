@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Caliber GST Register</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ledger page - header strip, KPI tiles, then one tab per Caliber GSTIN laid out like the GSTR-2B B2B table */
+:root {
+  --bg: #f4f6f7; --surface: #ffffff; --ink: #18232b; --muted: #5b6a73; --line: #d9e0e3;
+  --accent: #0b6470; --accent-soft: #dcefef;
+  --good: #1e7a46; --good-soft: #e1f2e7; --warn: #9a6200; --warn-soft: #fbefd6; --bad: #a8322d; --bad-soft: #f9e1df;
+  --f-display: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1619; --surface: #162126; --ink: #e3ecef; --muted: #93a5ad; --line: #2a3a41;
+  --accent: #5cc3cc; --accent-soft: #163a3f;
+  --good: #6fd39a; --good-soft: #17352a; --warn: #f0bd5e; --warn-soft: #3a2e14; --bad: #f08a83; --bad-soft: #3f1f1d;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1619; --surface: #162126; --ink: #e3ecef; --muted: #93a5ad; --line: #2a3a41;
+  --accent: #5cc3cc; --accent-soft: #163a3f;
+  --good: #6fd39a; --good-soft: #17352a; --warn: #f0bd5e; --warn-soft: #3a2e14; --bad: #f08a83; --bad-soft: #3f1f1d;
+  color-scheme: dark }
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-body); margin: 0 }
+.wrap { max-width: 1280px; margin: 0 auto; padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 22px }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em }
+h1 { font-size: 1.75rem } h2 { font-size: 1.2rem } h3 { font-size: 1rem }
+.mono { font-family: var(--f-mono); font-size: .86em }
+.muted { color: var(--muted) }
+.eyebrow { font: 600 .72rem/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted) }
+header.top { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: flex-end; justify-content: space-between;
+  border-bottom: 2px solid var(--ink); padding-bottom: 14px }
+header.top .meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: .85rem; color: var(--muted) }
+.regs { display: flex; flex-wrap: wrap; gap: 8px }
+.reg { display: flex; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 10px; font-size: .85rem }
+.pill { font: 600 .72rem/1 var(--f-body); padding: 4px 8px; border-radius: 99px; white-space: nowrap }
+.pill.good { background: var(--good-soft); color: var(--good) } .pill.warn { background: var(--warn-soft); color: var(--warn) }
+.pill.bad { background: var(--bad-soft); color: var(--bad) } .pill.info { background: var(--accent-soft); color: var(--accent) }
+.banner { border-left: 4px solid var(--bad); background: var(--bad-soft); color: var(--ink); padding: 12px 16px; border-radius: 0 6px 6px 0 }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px }
+.kpi .v { font: 600 1.45rem/1.15 var(--f-display); font-variant-numeric: tabular-nums }
+.kpi .s { font-size: .8rem; color: var(--muted) }
+nav.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line) }
+nav.tabs a { text-decoration: none; color: var(--muted); padding: 9px 14px; border-radius: 6px 6px 0 0; font-weight: 500;
+  border: 1px solid transparent; border-bottom: none; margin-bottom: -1px }
+nav.tabs a:hover { color: var(--ink) }
+nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--surface); border-color: var(--line); font-weight: 600 }
+nav.tabs a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+section.view { display: flex; flex-direction: column; gap: 16px }
+.sumline { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline }
+.sumline b { font-variant-numeric: tabular-nums }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+input[type="search"], select { font: inherit; font-size: .9rem; padding: 7px 10px; border: 1px solid var(--line);
+  border-radius: 6px; background: var(--surface); color: var(--ink); min-width: 0 }
+input[type="search"] { flex: 1 1 220px; max-width: 360px }
+button { font: 500 .88rem var(--f-body); padding: 7px 12px; border-radius: 6px; border: 1px solid var(--accent);
+  background: var(--accent); color: var(--surface); cursor: pointer }
+button.ghost { background: transparent; color: var(--accent) }
+.tablebox { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px }
+table { border-collapse: collapse; width: 100%; font-size: .86rem; min-width: 980px }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top }
+th { font: 600 .74rem/1.25 var(--f-body); letter-spacing: .04em; text-transform: uppercase; color: var(--muted);
+  background: var(--surface); position: sticky; top: 0; cursor: pointer; user-select: none; white-space: nowrap }
+th[data-sort="asc"]::after { content: " ▲" } th[data-sort="desc"]::after { content: " ▼" }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap }
+td.g { font-family: var(--f-mono); font-size: .8rem; white-space: nowrap }
+tr.sub td { background: var(--accent-soft); font-weight: 600 }
+tfoot td { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: none }
+.issue { font-size: .8rem; color: var(--muted); min-width: 300px; max-width: 52ch }
+.empty { padding: 18px; color: var(--muted) }
+footer { font-size: .8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px }
+.toast { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 6px; font-size: .85rem }
+@media (max-width: 560px) { h1 { font-size: 1.4rem } .kpi .v { font-size: 1.2rem } }
+@media (prefers-reduced-motion: no-preference) { nav.tabs a { transition: color .15s } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+      <span class="eyebrow">Inward supplies · GSTR-2B check</span>
+      <h1 id="h-name">Caliber GST Register</h1>
+      <div class="meta" id="h-meta"></div>
+    </div>
+    <div class="regs" id="regs"></div>
+  </header>
+  <div class="banner" id="banner" hidden></div>
+  <div class="kpis" id="kpis"></div>
+  <nav class="tabs" id="tabs" aria-label="Views"></nav>
+  <main id="views"></main>
+  <footer id="foot"></footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const DATA = {"company": "Caliber Inno Enterprise Pvt Ltd", "job_id": "20261101-065442-e9dbf9", "version": "1.2.0", "generated": "01-11-2026 06:54", "files": 79, "documents": 82, "registrations": [{"gstin": "29AAFCC7149G1ZF", "state": "Karnataka", "status": "Verified"}, {"gstin": "33AAFCC7149G1ZQ", "state": "Tamil Nadu", "status": "Verified"}], "final": [{"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "27AASPB7056K1Z9", "supplier_name": "", "invoice_number": "1501", "invoice_date": "25-07-2026", "invoice_value": 1534.0, "pos": "", "rcm": "N", "taxable": 1300.0, "igst": 234.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/CALIBER ENTERPRISES 25-7-26.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "27AIQPM7073H1ZP", "supplier_name": "POONAM CORPORATION", "invoice_number": "K3956", "invoice_date": "07-08-2026", "invoice_value": 20532.0, "pos": "", "rcm": "N", "taxable": 17400.0, "igst": 3132.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/Sales_K3956.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "27BIOPS8311M2ZH", "supplier_name": "STATIONERY WORLD", "invoice_number": "SW/26-27/0552", "invoice_date": "23-07-2026", "invoice_value": 17526.0, "pos": "Karnataka", "rcm": "N", "taxable": 14852.6, "igst": 2673.47, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/Invoice No 552 Date 23.07.2026.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "29AAQPT3660F1Z6", "supplier_name": "Ganeshmal Tejraj & Co (25-26) - (from 1-Apr-25)", "invoice_number": "26-27/2540", "invoice_date": "18-09-2026", "invoice_value": 5040.0, "pos": "", "rcm": "N", "taxable": 4800.0, "igst": null, "cgst": 120.0, "sgst": 120.0, "cess": null, "status": "Verified", "issues": "", "file": "bangalore/Sales_26-27_2540.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "33AAJFV5898A1ZX", "supplier_name": "VEL AGENCY", "invoice_number": "C686", "invoice_date": "25-07-2026", "invoice_value": 5987.0, "pos": "", "rcm": "N", "taxable": 5073.72, "igst": 913.27, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/C.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "33AAZCS2606L1ZV", "supplier_name": "SBE Unique Retails Pvt Ltd", "invoice_number": "SBE/HO/26-27/020", "invoice_date": "18-05-2026", "invoice_value": 112411.0, "pos": "", "rcm": "N", "taxable": 107057.76, "igst": 5352.89, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/TAX INVOICE_SBEHO26-27020.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "33ADFPR4210F2ZZ", "supplier_name": "Viraj Industries", "invoice_number": "VI 87/26-27", "invoice_date": "19-09-2026", "invoice_value": 60270.0, "pos": "", "rcm": "N", "taxable": 57400.0, "igst": 2870.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "bangalore/Inv VI 87 26-27_261002_110840.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "33ADFPR4210F2ZZ", "supplier_name": "Viraj Industries", "invoice_number": "VI 95/26-27", "invoice_date": "30-09-2026", "invoice_value": 31449.0, "pos": "", "rcm": "N", "taxable": 29952.0, "igst": 1497.6, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "bangalore/Inv VI 95 26-27_261002_110942.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "33ATEPS5100Q1ZH", "supplier_name": "Orange Enterprises", "invoice_number": "3677", "invoice_date": "25-07-2026", "invoice_value": 8354.4, "pos": "", "rcm": "N", "taxable": 7080.0, "igst": 1274.4, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/Invoice_3677_2026-07-25.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "06AAMCG0595P1ZX", "supplier_name": "Gmt Security And Automation India Private", "invoice_number": "GMT/GST/26/153", "invoice_date": "12-09-2026", "invoice_value": 18054.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 15300.0, "igst": 2754.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/Invoice_GMT-GST-26-153-Caliber-Inno-Enterprise-Private-Limited-Caliber-Inno-Enterprise-Private-Limited-05-32-1.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07AAEFR8210P1ZU", "supplier_name": "RAJ AGENCIES", "invoice_number": "614", "invoice_date": "19-09-2026", "invoice_value": 11200.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 9491.53, "igst": 1708.47, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/02 DOMS_80_sales_invoice_CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07AAXFN1418L1ZR", "supplier_name": "Nileskart", "invoice_number": "NK/656/2026-2027", "invoice_date": "29-08-2026", "invoice_value": 11800.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 10000.0, "igst": 1800.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/Nk _Sale - NK65 CALIBER INNO ENTERPRISE SALES_INVOICE Pdf.Pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07ABAFV7969A1ZZ", "supplier_name": "VED SOLUTIONS", "invoice_number": "262720", "invoice_date": "24-09-2026", "invoice_value": 40649.82, "pos": "", "rcm": "N", "taxable": 34449.0, "igst": 6200.82, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/Invoice of 150pcs Bluetooth neckbands (Quantron).pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07AFAPJ4959C1ZM", "supplier_name": "Shine Enterprises", "invoice_number": "INV0001", "invoice_date": "29-09-2026", "invoice_value": 120078.0, "pos": "", "rcm": "N", "taxable": 114360.0, "igst": 5718.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/INV0001_September29-040016pm (1) (1).pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07BKOPV0209B1ZB", "supplier_name": "RAWAT SALES", "invoice_number": "INV-113", "invoice_date": "24-09-2026", "invoice_value": 20355.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 17250.0, "igst": 3105.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/INV-113_for_Surendra_Kumar.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07BUHPB7038R1Z4", "supplier_name": "JB POLYMERS", "invoice_number": "323/2026-27", "invoice_date": "26-09-2026", "invoice_value": 17700.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 15000.0, "igst": 2700.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/Sales-323-2026-27.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07CJKPC3056K1Z5", "supplier_name": "", "invoice_number": "106", "invoice_date": "24-09-2026", "invoice_value": 23010.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 19500.0, "igst": 3510.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/Invoice of 100pcs laptop cooling pads.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07CRGPJ8369G1ZD", "supplier_name": "I MOON ENTERPRISES", "invoice_number": "290/2026-27", "invoice_date": "22-09-2026", "invoice_value": 35400.0, "pos": "Uttar Pradesh", "rcm": "N", "taxable": 30000.0, "igst": 5400.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/Invoice of 150pcs Travel adapters.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07DLJPA8926G1ZZ", "supplier_name": "FLISPY", "invoice_number": "GST26-27/265", "invoice_date": "29-09-2026", "invoice_value": 44250.0, "pos": "", "rcm": "N", "taxable": 37500.0, "igst": 6750.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/Invoice of 300pcs Waist Pouch Bag..pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07EESPA4731Q1ZW", "supplier_name": "HK ENTERPRISE", "invoice_number": "HK/2026-27/20", "invoice_date": "25-09-2026", "invoice_value": 11800.0, "pos": "", "rcm": "N", "taxable": 10000.0, "igst": 1800.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/Sales_HK_2026-27_20.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07FVHPS3845C1ZD", "supplier_name": "", "invoice_number": "405", "invoice_date": "19-09-2026", "invoice_value": 22184.0, "pos": "", "rcm": "N", "taxable": 18800.0, "igst": 3384.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/01 School Bagpack_80_T.I._Caliber_Inno_Enterprise_Pvt_Ltd_1789804368508.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "08AAHCE1841M1ZF", "supplier_name": "EKATRA COLLECTIVE PRIVATE LIMITED", "invoice_number": "EK/26-27/143", "invoice_date": "21-08-2026", "invoice_value": 41400.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 39428.32, "igst": 1971.42, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/EK-26-27-143.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "09BTVPS6077G1ZP", "supplier_name": "Belsara Craft", "invoice_number": "W260904", "invoice_date": "25-09-2026", "invoice_value": 4000.0, "pos": "", "rcm": "N", "taxable": 3810.0, "igst": 190.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/06 Tangram_40_sales_invoice_CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "09DWUPK2841G2Z1", "supplier_name": "JVG ENTERPRISES", "invoice_number": "46", "invoice_date": "22-09-2026", "invoice_value": 57750.0, "pos": "", "rcm": "N", "taxable": 55000.0, "igst": 2750.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/Invoice of 1000pcs T-shirts..pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "27AACCH5367G1ZH", "supplier_name": "BOROSIL LIMITED", "invoice_number": "9340124479", "invoice_date": "19-09-2026", "invoice_value": 326199.2, "pos": "", "rcm": "N", "taxable": 276440.0, "igst": 49759.2, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/Invoice # 9340124479.PDF"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "27AAGCE1519B1Z4", "supplier_name": "Ekmatra Technology Pvt Ltd", "invoice_number": "INV-26/27-01645", "invoice_date": "23-09-2026", "invoice_value": 104489.0, "pos": "", "rcm": "N", "taxable": 88550.0, "igst": 15939.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/01645.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "27AAGFL3290D1ZF", "supplier_name": "LEGENDS OVERSEAS LLP-(FY 2025-26)", "invoice_number": "LLP/2537/26-27", "invoice_date": "21-07-2026", "invoice_value": 1045.0, "pos": "", "rcm": "N", "taxable": 995.0, "igst": 49.75, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/Caliber Inno Enterprise Private Limited 2537.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "27AAGFM4822L1Z1", "supplier_name": "MARKET MOVERS (INDIA)", "invoice_number": "74/US/RS/JUN2627", "invoice_date": "22-06-2026", "invoice_value": 2000.0, "pos": "", "rcm": "N", "taxable": 1905.0, "igst": 95.26, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/CALIBER INNO ENTERPRISE PRIVATE LIMITED-US.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "27AANCP5272H1Z0", "supplier_name": "PROCTER INTERNATIONAL PRIVATE LIMITED", "invoice_number": "26-27/438", "invoice_date": "20-07-2026", "invoice_value": 1396.0, "pos": "", "rcm": "N", "taxable": 1305.0, "igst": 91.25, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/438.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "27AOTPM5946A1ZM", "supplier_name": "ELITE WRITING INSTRUMENTS", "invoice_number": "INV-1418", "invoice_date": "20-05-2026", "invoice_value": 236.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 200.0, "igst": 36.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/INV-1418_CALIBER INNO ENTERPRISE PRIVATE LIMITED (2).pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "27CFTPR0784Q1Z7", "supplier_name": "Excite Shoppers", "invoice_number": "26-27/ES 20", "invoice_date": "25-06-2026", "invoice_value": 8495.0, "pos": "", "rcm": "N", "taxable": 7750.0, "igst": 745.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/Caliber Inno ES20.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "29AKTPP5406E1ZS", "supplier_name": "SURABHI CREATIONS", "invoice_number": "2026-27/SC 0290", "invoice_date": "19-09-2026", "invoice_value": 19950.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 19000.0, "igst": 950.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED_Invoice_2026_27_SC_0290_ORIGINAL_FOR_RECIPIENT.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "33AAJPM9546J1Z9", "supplier_name": "Metro Gifts", "invoice_number": "MG/1327/26-27", "invoice_date": "28-07-2026", "invoice_value": 22073.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 20000.0, "igst": null, "cgst": 1036.25, "sgst": 1036.25, "cess": null, "status": "Verified", "issues": "", "file": "other month/Sales_MG_1327_26-27.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "33AAJPM9546J1Z9", "supplier_name": "Metro Gifts", "invoice_number": "MG/1969/26-27", "invoice_date": "23-09-2026", "invoice_value": 7670.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 6500.0, "igst": null, "cgst": 585.0, "sgst": 585.0, "cess": null, "status": "Verified", "issues": "", "file": "chennai/Sales_MG_1969_26-27.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "33AALHD0599Q1ZO", "supplier_name": "MG INTERNATIONAL", "invoice_number": "MGI/1109/26-27", "invoice_date": "07-08-2026", "invoice_value": 7788.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 6600.0, "igst": null, "cgst": 594.0, "sgst": 594.0, "cess": null, "status": "Verified", "issues": "", "file": "other month/GST SALES_MGI_1109_26-27.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "33AMHPH0668N2ZT", "supplier_name": "WOWW PRINTS", "invoice_number": "24", "invoice_date": "29-06-2026", "invoice_value": 6608.0, "pos": "", "rcm": "N", "taxable": 5600.0, "igst": null, "cgst": 504.0, "sgst": 504.0, "cess": null, "status": "Verified", "issues": "", "file": "other month/Id Tag Printing invoice.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "33BAUPA0214K1Z0", "supplier_name": "Classic Eco Enterprises", "invoice_number": "CEE/098/26-27", "invoice_date": "03-08-2026", "invoice_value": 767.0, "pos": "", "rcm": "N", "taxable": 650.0, "igst": null, "cgst": 58.5, "sgst": 58.5, "cess": null, "status": "Verified", "issues": "", "file": "other month/Inv Cee 098-26-27 caliber inno 3 august 26.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "33CUJPS2002M1ZL", "supplier_name": "SURESH ELECTRICALS", "invoice_number": "459", "invoice_date": "25-07-2026", "invoice_value": 3300.0, "pos": "", "rcm": "N", "taxable": 2796.75, "igst": null, "cgst": 251.71, "sgst": 251.71, "cess": null, "status": "Verified", "issues": "", "file": "other month/459.1.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "36AEHFS8030F1Z0", "supplier_name": "SSUTRRA SOLUTIONS LLP", "invoice_number": "SS-2627-2294", "invoice_date": "16-07-2026", "invoice_value": 232148.0, "pos": "", "rcm": "N", "taxable": 196736.0, "igst": 35412.48, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/SAS-2627-2294-Caliber Inno.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "36AEHFS8030F1Z0", "supplier_name": "SSUTRRA SOLUTIONS LLP", "invoice_number": "SS-2627-2417", "invoice_date": "22-07-2026", "invoice_value": 233168.0, "pos": "", "rcm": "N", "taxable": 197600.0, "igst": 35568.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "other month/SS-2627-2417-Caliber Inno.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "36AHSPJ4096J1ZO", "supplier_name": "", "invoice_number": "2627-41149", "invoice_date": "11-09-2026", "invoice_value": 9440.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 8000.0, "igst": 1440.0, "cgst": null, "sgst": null, "cess": null, "status": "Verified", "issues": "", "file": "chennai/1789810293703-2627-41149.pdf"}], "pending": [{"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "33ADFPR4210F2ZZ", "supplier_name": "Viraj Industries", "invoice_number": "VI 94/26-27", "invoice_date": "29-09-2026", "invoice_value": 22944.6, "pos": "", "rcm": "N", "taxable": 21852.0, "igst": null, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[ERROR] No IGST/CGST/SGST/UTGST amount found; [ERROR] Taxable + taxes + charges + round-off = 21,851.40 but invoice total = 22,944.60 (difference 1,093.20)", "rules": ["ERROR Tax amount missing", "ERROR Total does not add up"], "file": "bangalore/Inv VI 94 26-27_261002_110918.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "29CNPPM4643H2ZF", "supplier_name": "", "invoice_number": "SL-15724F", "invoice_date": "01-09-2026", "invoice_value": null, "pos": "", "rcm": "N", "taxable": 200.0, "igst": null, "cgst": 10.0, "sgst": 10.0, "cess": null, "status": "Review Required", "issues": "[ERROR] Invoice total not found; [WARNING] Document is headed 'Bill of Supply' (exempt / composition supplier) - no GST input credit can be claimed; confirm before booking", "rules": ["ERROR Total missing", "WARNING Bill of Supply - no ITC"], "file": "bangalore/WhatsApp Image 2026-09-01 at 2.19.35 PM.jpeg"}, {"caliber_gstin": "", "supplier_gstin": "", "supplier_name": "", "invoice_number": "", "invoice_date": "", "invoice_value": null, "pos": "", "rcm": "N", "taxable": null, "igst": null, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "", "rules": [], "file": "chennai/03 Barakhadi chart_30_sales_invoice_CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07ANYPJ0860A1Z1", "supplier_name": "", "invoice_number": "DKG/2026-27/367", "invoice_date": "21-09-2026", "invoice_value": 5040.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 4800.0, "igst": 240.0, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[WARNING] Supplier GSTIN auto-corrected from OCR text 'O7ANYPJ0860A1Z1' -> 07ANYPJ0860A1Z1; verify against the document", "rules": ["WARNING GSTIN read by OCR - verify"], "file": "chennai/04 Memory Chess_Game_40_sales_invoice_CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED.pdf"}, {"caliber_gstin": "", "supplier_gstin": "", "supplier_name": "Prakash Books India Pvt. Ltd, Packed By Checked By", "invoice_number": "HO-26-CRB-93817", "invoice_date": "", "invoice_value": 316525.0, "pos": "", "rcm": "N", "taxable": 316525.0, "igst": 284.88, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[ERROR] Caliber buyer GSTIN not found on the document; [ERROR] Supplier GSTIN not found; [ERROR] Invoice date not found", "rules": ["ERROR Caliber GSTIN missing", "ERROR Supplier GSTIN missing", "ERROR Invoice date missing"], "file": "chennai/05 Flash_Cards_25_sales_invoice_CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "09AHVPA6295M1ZG", "supplier_name": "RY ENCLAVE, LONI, GHAZIABAD GHA.LIABAD", "invoice_number": "KGNF-2026-27-055", "invoice_date": "29-09-2026", "invoice_value": null, "pos": "", "rcm": "N", "taxable": 28000.0, "igst": 700.0, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[WARNING] Supplier GSTIN auto-corrected from OCR text 'O9AHVPAG295M1ZG' -> 09AHVPA6295M1ZG; verify against the document; [ERROR] Invoice total not found", "rules": ["WARNING GSTIN read by OCR - verify", "ERROR Total missing"], "file": "chennai/Invoice of 1000pcs Caps..pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "05AKSPK4262E1Z4", "supplier_name": "BATHLA ENTERPRISES", "invoice_number": "2026-27/261", "invoice_date": "26-09-2026", "invoice_value": 34220.0, "pos": "Tamil Nadu", "rcm": "N", "taxable": 34220.0, "igst": null, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[ERROR] No IGST/CGST/SGST/UTGST amount found", "rules": ["ERROR Tax amount missing"], "file": "chennai/Invoice of 1000pcs Plastic Sipper Bottels of 500 ml..pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "07GFTPS2540D1Z5", "supplier_name": "DELHI SELLER.COM", "invoice_number": "DSC/743/26-27", "invoice_date": "24-09-2026", "invoice_value": 59295.0, "pos": "", "rcm": "N", "taxable": 50250.0, "igst": 9045.0, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[WARNING] Ship GSTIN 33AAFCC7149G1ZQ (state code 33) is printed with state 'Haryana, Code 06' - confirm the correct registration with the supplier", "rules": ["WARNING GSTIN / state mismatch"], "file": "chennai/Invoice of 150pcs Headphones (Zebronics).pdf"}, {"caliber_gstin": "", "supplier_gstin": "07ADXPL1849C1ZA", "supplier_name": "", "invoice_number": "", "invoice_date": "", "invoice_value": null, "pos": "", "rcm": "N", "taxable": null, "igst": null, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[WARNING] Supplier GSTIN auto-corrected from OCR text 'O7ADXPL1849C1ZA' -> 07ADXPL1849C1ZA; verify against the document", "rules": ["WARNING GSTIN read by OCR - verify"], "file": "chennai/Invoice of 50pcs Smart watches.pdf"}, {"caliber_gstin": "", "supplier_gstin": "", "supplier_name": "Shine Enterprises", "invoice_number": "INV0001", "invoice_date": "18-09-2026", "invoice_value": 120078.0, "pos": "", "rcm": "N", "taxable": 114360.0, "igst": 5718.0, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "", "rules": [], "file": "chennai/Invoice_INV0001_Shine_Enterprises.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "36AEHFS8030F1Z0", "supplier_name": "SSUTRRA SOLUTIONS LLP", "invoice_number": "SS-2627-5965", "invoice_date": "19-09-2026", "invoice_value": 629736.0, "pos": "", "rcm": "N", "taxable": 549710.0, "igst": 80026.3, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[WARNING] Ship GSTIN 33AAFCC7149G1ZQ (state code 33) is printed with state 'Telangana, Code 36' - confirm the correct registration with the supplier", "rules": ["WARNING GSTIN / state mismatch"], "file": "chennai/SS-2627-5965-Caliber Inno.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "", "supplier_name": "MEDLIVE HEALTHCARE PRIVATE LIMITED", "invoice_number": "MHPL/26-27/1351", "invoice_date": "22-09-2026", "invoice_value": 1995.0, "pos": "", "rcm": "N", "taxable": 1900.0, "igst": 95.0, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[ERROR] Supplier GSTIN not found", "rules": ["ERROR Supplier GSTIN missing"], "file": "chennai/caliber inv.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "33AAECP9975G1Z0", "supplier_name": "Poorvika Mobiles Private Limited", "invoice_number": "GSI/3PAR/5796", "invoice_date": "08-09-2026", "invoice_value": 30290.68, "pos": "Tamil Nadu", "rcm": "N", "taxable": null, "igst": null, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[ERROR] Taxable value not found; [ERROR] No IGST/CGST/SGST/UTGST amount found", "rules": ["ERROR Taxable value missing", "ERROR Tax amount missing"], "file": "chennai/poorvika_GSI_3PAR_5796_24769_08_09_2026_20260908142329125 (1).pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "27AABCB4741R1Z9", "supplier_name": "Bombay Stationers Pvt Ltd", "invoice_number": "B2-2627-1142", "invoice_date": "24-07-2026", "invoice_value": 5359.0, "pos": "Karnataka", "rcm": "N", "taxable": 4541.12, "igst": 817.4, "cgst": null, "sgst": null, "cess": null, "status": "Review Required", "issues": "[WARNING] Supplier GSTIN state code 27 (Maharashtra) differs from state printed on document 'Karnataka (29)'", "rules": ["WARNING Supplier state mismatch"], "file": "other month/CALIBER-1.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "27BPKPD9576A1ZR", "supplier_name": "NAKSHATRA ART", "invoice_number": "J00089", "invoice_date": "23-07-2026", "invoice_value": 9086.0, "pos": "", "rcm": "N", "taxable": 7700.0, "igst": null, "cgst": 693.0, "sgst": 693.0, "cess": null, "status": "Review Required", "issues": "[WARNING] Supplier state 27 differs from place of supply 29 but CGST/SGST charged - review (place-of-supply rules may still allow this)", "rules": ["WARNING CGST/SGST on interstate"], "file": "other month/Caliber-2.pdf"}, {"caliber_gstin": "29AAFCC7149G1ZF", "supplier_gstin": "27KUFPS2357D1ZB", "supplier_name": "SAYALI DIGITAL", "invoice_number": "INV/2026-27/083", "invoice_date": "23-07-2026", "invoice_value": 8850.0, "pos": "", "rcm": "N", "taxable": 7500.0, "igst": null, "cgst": 675.0, "sgst": 675.0, "cess": null, "status": "Review Required", "issues": "[WARNING] Supplier state 27 differs from place of supply 29 but CGST/SGST charged - review (place-of-supply rules may still allow this)", "rules": ["WARNING CGST/SGST on interstate"], "file": "other month/INV CALIBER INNO ENTERPRISE PRIVATE LIMITED.pdf"}, {"caliber_gstin": "", "supplier_gstin": "27AHHPK0276E1ZI", "supplier_name": "NOORI STORE", "invoice_number": "26-27/046", "invoice_date": "01-07-2026", "invoice_value": 37170.0, "pos": "", "rcm": "N", "taxable": 31500.0, "igst": null, "cgst": 2835.0, "sgst": 2835.0, "cess": null, "status": "Review Required", "issues": "[ERROR] Caliber buyer GSTIN not found on the document", "rules": ["ERROR Caliber GSTIN missing"], "file": "other month/Sales_26-27_046.pdf"}, {"caliber_gstin": "", "supplier_gstin": "27AHHPK0276E1ZI", "supplier_name": "NOORI STORE", "invoice_number": "26-27/050", "invoice_date": "07-07-2026", "invoice_value": 24780.0, "pos": "", "rcm": "N", "taxable": 21000.0, "igst": null, "cgst": 1890.0, "sgst": 1890.0, "cess": null, "status": "Review Required", "issues": "[ERROR] Caliber buyer GSTIN not found on the document", "rules": ["ERROR Caliber GSTIN missing"], "file": "other month/Sales_26-27_050.pdf"}, {"caliber_gstin": "", "supplier_gstin": "27AHHPK0276E1ZI", "supplier_name": "NOORI STORE", "invoice_number": "26-27/054", "invoice_date": "09-07-2026", "invoice_value": 5900.0, "pos": "", "rcm": "N", "taxable": 5000.0, "igst": null, "cgst": 450.0, "sgst": 450.0, "cess": null, "status": "Review Required", "issues": "[ERROR] Caliber buyer GSTIN not found on the document", "rules": ["ERROR Caliber GSTIN missing"], "file": "other month/Sales_26-27_054.pdf"}, {"caliber_gstin": "33AAFCC7149G1ZQ", "supplier_gstin": "27AHHPK0276E1ZI", "supplier_name": "NOORI STORE", "invoice_number": "26-27/077", "invoice_date": "14-08-2026", "invoice_value": 5900.0, "pos": "", "rcm": "N", "taxable": 5000.0, "igst": null, "cgst": 450.0, "sgst": 450.0, "cess": null, "status": "Review Required", "issues": "[WARNING] Bill GSTIN 33AAFCC7149G1ZQ (state code 33) is printed with state 'Maharashtra, Code 27' - confirm the correct registration with the supplier; [WARNING] Supplier state 27 differs from place of supply 33 but CGST/SGST charged - review (place-of-supply rules may still allow this)", "rules": ["WARNING GSTIN / state mismatch", "WARNING CGST/SGST on interstate"], "file": "other month/Sales_26-27_077.pdf"}], "duplicates": [{"group": "D001", "level": "identical file", "number": "INV-26/27-01645", "supplier": "27AAGCE1519B1Z4", "primary": "01645.pdf [p1]", "candidate": "Invoice of 150pcs Powerbanks & 150pcs Earbuds.pdf [p1]", "action": "Keep one copy; exclude the others from totals"}, {"group": "D002", "level": "identical file", "number": "W260904", "supplier": "09BTVPS6077G1ZP", "primary": "06 Tangram_40_sales_invoice_CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED.pdf [p1]", "candidate": "Invoice_W260904_25 Sep_CALIBER INNO _TN_(TR-Box).pdf [p1]", "action": "Keep one copy; exclude the others from totals"}, {"group": "D003", "level": "identical file", "number": "2026-27/SC 0290", "supplier": "29AKTPP5406E1ZS", "primary": "CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED_Invoice_2026_27_SC_0290_ORIGINAL_FOR_RECIPIENT.pdf [p1]", "candidate": "CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED_Invoice_2026_27_SC_0290_ORIGINAL_FOR_RECIPIENT (1).pdf [p1]", "action": "Keep one copy; exclude the others from totals"}, {"group": "D003", "level": "identical file", "number": "2026-27/SC 0290", "supplier": "29AKTPP5406E1ZS", "primary": "CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED_Invoice_2026_27_SC_0290_ORIGINAL_FOR_RECIPIENT.pdf [p1]", "candidate": "CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED_Invoice_2026_27_SC_0290_ORIGINAL_FOR_RECIPIENT (2).pdf [p1]", "action": "Keep one copy; exclude the others from totals"}, {"group": "D004", "level": "identical file", "number": "INV-113", "supplier": "07BKOPV0209B1ZB", "primary": "INV-113_for_Surendra_Kumar.pdf [p1]", "candidate": "INV-113_for_Surendra_Kumar (1).pdf [p1]", "action": "Keep one copy; exclude the others from totals"}, {"group": "D004", "level": "identical file", "number": "INV-113", "supplier": "07BKOPV0209B1ZB", "primary": "INV-113_for_Surendra_Kumar.pdf [p1]", "candidate": "INV-113_for_Surendra_Kumar (2).pdf [p1]", "action": "Keep one copy; exclude the others from totals"}, {"group": "D005", "level": "identical file", "number": "INV0001", "supplier": "07AFAPJ4959C1ZM", "primary": "INV0001_September29-040016pm (1) (1).pdf [p1]", "candidate": "INV0001_September29-040016pm (1).pdf [p1]", "action": "Keep one copy; exclude the others from totals"}, {"group": "D003", "level": "same supplier, number, date and values", "number": "2026-27/SC 0290", "supplier": "29AKTPP5406E1ZS", "primary": "CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED_Invoice_2026_27_SC_0290_ORIGINAL_FOR_RECIPIENT.pdf [p1]", "candidate": "CALIBER_INNO_ENTERPRISE_PRIVATE_LIMITED_Sales_Invoice_2026_27_SC_0290.pdf [p1]", "action": "Exact duplicate - keep primary only"}, {"group": "D004", "level": "same number, different values", "number": "INV-113", "supplier": "07BKOPV0209B1ZB", "primary": "INV-113_for_Surendra_Kumar.pdf [p1]", "candidate": "Invoice of 50pcs Docking stations.pdf [p1]", "action": "Review: decide which version is final (Revised invoice) or Separate transaction"}], "non_tax": 12, "source": "Caliber_GST_Register_v1.2.0.xlsx"};
+const inr = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = v => (v === null || v === undefined || v === "") ? "" : inr.format(v);
+const moneyNz = v => v ? inr.format(v) : "";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const sum = (rows, k) => rows.reduce((a, r) => a + (Number(r[k]) || 0), 0);
+const STATE_SHORT = { "29": "Karnataka", "33": "Tamil Nadu" };
+
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2200); }
+
+function statusPill(s) {
+  const cls = s === "Verified" ? "good" : s.startsWith("Duplicate") ? "info" : s.startsWith("Review") ? "warn" : "bad";
+  return `<span class="pill ${cls}">${esc(s)}</span>`;
+}
+
+const COLS = [
+  ["supplier_gstin", "GSTIN of supplier", "g"], ["supplier_name", "Trade/Legal name"], ["invoice_number", "Invoice number"],
+  ["invoice_date", "Invoice date"], ["invoice_value", "Invoice value", "num"], ["pos", "Place of supply"],
+  ["rcm", "RCM"], ["taxable", "Taxable value", "num"], ["igst", "Integrated tax", "num"], ["cgst", "Central tax", "num"],
+  ["sgst", "State/UT tax", "num"], ["cess", "Cess", "num"]];
+const MONEYK = ["invoice_value", "taxable", "igst", "cgst", "sgst", "cess"];
+
+function table(rows, opts) {
+  const cols = COLS.concat(opts.extra || []);
+  const head = cols.map(([k, l, c]) => `<th data-k="${k}" class="${c === "num" ? "num" : ""}" scope="col">${esc(l)}</th>`).join("");
+  let body = "", lastSup = null, group = [];
+  const flush = () => {
+    if (opts.subtotals && group.length > 1) {
+      body += `<tr class="sub"><td class="g">${esc(lastSup)}</td><td colspan="3">Subtotal · ${group.length} invoices</td>` +
+        cols.slice(4).map(([k, , c]) => c === "num" ? `<td class="num">${moneyNz(sum(group, k))}</td>` : "<td></td>").join("") + "</tr>";
+    }
+    group = [];
+  };
+  rows.forEach(r => {
+    if (opts.subtotals && r.supplier_gstin !== lastSup) { flush(); lastSup = r.supplier_gstin; }
+    group.push(r);
+    body += "<tr>" + cols.map(([k, , c]) => {
+      const v = r[k];
+      if (k === "status") return `<td>${statusPill(v || "")}</td>`;
+      if (k === "issues") return `<td class="issue">${esc(v)}</td>`;
+      if (c === "num") return `<td class="num">${money(v)}</td>`;
+      if (c === "g") return `<td class="g">${esc(v)}</td>`;
+      return `<td>${esc(v)}</td>`;
+    }).join("") + "</tr>";
+  });
+  flush();
+  const foot = rows.length ? `<tfoot><tr><td colspan="4">Total · ${rows.length} invoices</td>` +
+    cols.slice(4).map(([k, , c]) => c === "num" ? `<td class="num">${moneyNz(sum(rows, k))}</td>` : "<td></td>").join("") + "</tr></tfoot>" : "";
+  return `<div class="tablebox"><table><thead><tr>${head}</tr></thead><tbody>${body ||
+    `<tr><td class="empty" colspan="${cols.length}">${esc(opts.empty || "No invoices")}</td></tr>`}</tbody>${foot}</table></div>`;
+}
+
+function tsv(rows, cols) {
+  return [cols.map(c => c[1]).join("\t")].concat(rows.map(r => cols.map(([k]) => r[k] ?? "").join("\t"))).join("\n");
+}
+
+function copyRows(rows, cols, label) {
+  const text = tsv(rows, cols);
+  const done = () => toast(`${label} copied - paste into Excel`);
+  try {
+    navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  } catch (e) { fallbackCopy(text, done); }
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select();
+  let ok = false; try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  ta.remove(); ok ? done() : toast("Copy was blocked by the browser - select the table and copy it instead");
+}
+
+function sortable(root, rows, render) {
+  root.querySelectorAll("th[data-k]").forEach(th => th.addEventListener("click", () => {
+    const k = th.dataset.k, dir = th.dataset.sort === "asc" ? "desc" : "asc";
+    rows.sort((a, b) => {
+      const x = a[k] ?? "", y = b[k] ?? "";
+      const r = (typeof x === "number" || typeof y === "number") ? (Number(x) || 0) - (Number(y) || 0) : String(x).localeCompare(String(y));
+      return dir === "asc" ? r : -r;
+    });
+    render(k, dir);
+  }));
+}
+
+function gstinView(reg) {
+  const fin = DATA.final.filter(r => r.caliber_gstin === reg.gstin);
+  const pend = DATA.pending.filter(r => r.caliber_gstin === reg.gstin);
+  const sec = document.createElement("section");
+  sec.className = "view"; sec.id = "v-gstin-" + reg.gstin;
+  const itc = sum(fin, "igst") + sum(fin, "cgst") + sum(fin, "sgst") + sum(fin, "cess");
+  const sups = new Set(fin.map(r => r.supplier_gstin)).size;
+  sec.innerHTML = `
+    <div class="sumline"><h2>${esc(reg.gstin)} · ${esc(reg.state)}</h2>${statusPill(reg.status === "Verified" ? "Verified" : "Review: " + reg.status)}</div>
+    <div class="sumline muted"><span><b>${fin.length}</b> final invoices from <b>${sups}</b> suppliers</span>
+      <span>Taxable <b>₹ ${money(sum(fin, "taxable"))}</b></span><span>ITC <b>₹ ${money(itc)}</b></span>
+      <span>Invoice value <b>₹ ${money(sum(fin, "invoice_value"))}</b></span></div>
+    <div class="tools">
+      <label class="eyebrow" for="q-${reg.gstin}">Search</label>
+      <input type="search" id="q-${reg.gstin}" placeholder="Supplier GSTIN, name or invoice no.">
+      <button type="button" id="c-${reg.gstin}">Copy for Excel</button>
+    </div>
+    <div class="fin"></div>
+    <h3>Billed to ${esc(reg.gstin)} but not in Final · ${pend.length}</h3>
+    <p class="muted" style="margin:0">Check the reason before claiming ITC. Correct these in the app (Document Review) and rebuild.</p>
+    <div class="pend"></div>`;
+  const finBox = sec.querySelector(".fin"), pendBox = sec.querySelector(".pend");
+  let shown = fin.slice(), sortedBy = null;
+  const draw = (k, dir) => {
+    sortedBy = k;
+    finBox.innerHTML = table(shown, { subtotals: !k || k === "supplier_gstin", empty: "No final invoices for this registration yet" });
+    if (k) { const th = finBox.querySelector(`th[data-k="${k}"]`); if (th) th.dataset.sort = dir; }
+    sortable(finBox, shown, draw);
+  };
+  draw();
+  sec.querySelector("input").addEventListener("input", e => {
+    const q = e.target.value.trim().toLowerCase();
+    shown = fin.filter(r => !q || [r.supplier_gstin, r.supplier_name, r.invoice_number].some(v => String(v || "").toLowerCase().includes(q)));
+    draw();
+  });
+  sec.querySelector("button").addEventListener("click", () => copyRows(shown, COLS, `${shown.length} invoices`));
+  pendBox.innerHTML = table(pend, { extra: [["status", "Status"], ["issues", "Reason"]], empty: "Nothing pending for this registration" });
+  return sec;
+}
+
+function pendingView() {
+  const sec = document.createElement("section"); sec.className = "view"; sec.id = "v-pending";
+  const counts = {};
+  DATA.pending.forEach(r => (r.rules || []).forEach(x => counts[x] = (counts[x] || 0) + 1));
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, n]) =>
+    `<span class="pill ${k.startsWith("ERROR") ? "bad" : "warn"}">${esc(k.replace(/^(ERROR|WARNING) /, ""))} · ${n}</span>`).join(" ");
+  sec.innerHTML = `<h2>Pending review · ${DATA.pending.length}</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">${top || '<span class="muted">No open issues</span>'}</div>
+    ${table(DATA.pending, { extra: [["caliber_gstin", "Caliber GSTIN", "g"], ["status", "Status"], ["issues", "Reason"]], empty: "Nothing pending" })}`;
+  return sec;
+}
+
+function dupView() {
+  const sec = document.createElement("section"); sec.className = "view"; sec.id = "v-duplicates";
+  const rows = DATA.duplicates.map(d => `<tr><td class="g">${esc(d.group)}</td><td>${esc(d.level)}</td><td>${esc(d.number)}</td>
+    <td class="g">${esc(d.supplier)}</td><td>${esc(d.primary)}</td><td>${esc(d.candidate)}</td><td class="issue">${esc(d.action)}</td></tr>`).join("");
+  sec.innerHTML = `<h2>Duplicates excluded · ${DATA.duplicates.length}</h2>
+    <p class="muted" style="margin:0">Copies are kept out of Final so no invoice is counted twice. No file is deleted.</p>
+    <div class="tablebox"><table><thead><tr><th>Group</th><th>Match</th><th>Invoice no.</th><th>Supplier GSTIN</th><th>Kept (primary)</th><th>Excluded copy</th><th>Action</th></tr></thead>
+    <tbody>${rows || '<tr><td class="empty" colspan="7">No duplicates</td></tr>'}</tbody></table></div>`;
+  return sec;
+}
+
+function render() {
+  if (!DATA) { document.getElementById("views").innerHTML = '<p class="empty">No register data embedded. Build this page with dashboard.py.</p>'; return; }
+  document.getElementById("h-name").textContent = DATA.company + " · GST Register";
+  document.getElementById("h-meta").innerHTML = `<span>Batch <span class="mono">${esc(DATA.job_id)}</span></span>` +
+    `<span>Built ${esc(DATA.generated)}</span><span>${DATA.files} files · ${DATA.documents} documents</span><span>App ${esc(DATA.version)}</span>`;
+  document.getElementById("regs").innerHTML = DATA.registrations.map(r =>
+    `<div class="reg"><span class="mono">${esc(r.gstin)}</span><span>${esc(r.state)}</span>${statusPill(r.status === "Verified" ? "Verified" : r.status)}</div>`).join("");
+  const unver = DATA.registrations.filter(r => r.status !== "Verified");
+  if (unver.length) {
+    const b = document.getElementById("banner"); b.hidden = false;
+    b.innerHTML = `<b>Final is incomplete.</b> ${unver.map(r => esc(r.gstin)).join(", ")} ${unver.length > 1 ? "are" : "is"} not verified in the Caliber GST Master, so invoices billed to ${unver.length > 1 ? "them" : "it"} wait in Pending review. Verify in the app and rebuild this page.`;
+  }
+  const fin = DATA.final, itc = sum(fin, "igst") + sum(fin, "cgst") + sum(fin, "sgst") + sum(fin, "cess");
+  const k = [["Final invoices", fin.length, `${new Set(fin.map(r => r.supplier_gstin)).size} suppliers`],
+    ["Taxable value", "₹ " + money(sum(fin, "taxable")), "verified inward invoices"],
+    ["Input tax credit", "₹ " + money(itc), `IGST ${money(sum(fin, "igst"))} · CGST ${money(sum(fin, "cgst"))} · SGST ${money(sum(fin, "sgst"))}`],
+    ["Pending review", DATA.pending.length, "need a person before ITC"],
+    ["Duplicates excluded", DATA.duplicates.length, `${DATA.non_tax} non-tax documents set aside`]];
+  document.getElementById("kpis").innerHTML = k.map(([l, v, s]) => `<div class="kpi"><span class="eyebrow">${esc(l)}</span><span class="v">${esc(v)}</span><span class="s">${esc(s)}</span></div>`).join("");
+
+  const views = document.getElementById("views"), tabs = document.getElementById("tabs");
+  const items = DATA.registrations.map(r => ["gstin-" + r.gstin, `${r.state} · ${r.gstin.slice(0, 2)}`, gstinView(r)]);
+  items.push(["pending", `Pending review (${DATA.pending.length})`, pendingView()]);
+  items.push(["duplicates", `Duplicates (${DATA.duplicates.length})`, dupView()]);
+  items.forEach(([id, label, el]) => { el.hidden = true; views.appendChild(el);
+    tabs.insertAdjacentHTML("beforeend", `<a href="#${id}" data-v="${id}">${esc(label)}</a>`); });
+  const show = () => {
+    const want = location.hash.slice(1), id = items.some(i => i[0] === want) ? want : items[0][0];
+    items.forEach(([vid, , el]) => el.hidden = vid !== id);
+    tabs.querySelectorAll("a").forEach(a => a.dataset.v === id ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  };
+  window.addEventListener("hashchange", show); show();
+  document.getElementById("foot").textContent = "Columns follow the GSTR-2B B2B table on the GST portal. Only Verified inward tax invoices are counted in Final; quotations, proformas, e-way bills, duplicates and unverified records are excluded. Built from " + DATA.source + ".";
+}
+render();
+</script>
+
+</html>

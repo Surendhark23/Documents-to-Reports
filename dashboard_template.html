@@ -1,0 +1,282 @@
+<title>Caliber GST Register</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ledger page - header strip, KPI tiles, then one tab per Caliber GSTIN laid out like the GSTR-2B B2B table */
+:root {
+  --bg: #f4f6f7; --surface: #ffffff; --ink: #18232b; --muted: #5b6a73; --line: #d9e0e3;
+  --accent: #0b6470; --accent-soft: #dcefef;
+  --good: #1e7a46; --good-soft: #e1f2e7; --warn: #9a6200; --warn-soft: #fbefd6; --bad: #a8322d; --bad-soft: #f9e1df;
+  --f-display: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1619; --surface: #162126; --ink: #e3ecef; --muted: #93a5ad; --line: #2a3a41;
+  --accent: #5cc3cc; --accent-soft: #163a3f;
+  --good: #6fd39a; --good-soft: #17352a; --warn: #f0bd5e; --warn-soft: #3a2e14; --bad: #f08a83; --bad-soft: #3f1f1d;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1619; --surface: #162126; --ink: #e3ecef; --muted: #93a5ad; --line: #2a3a41;
+  --accent: #5cc3cc; --accent-soft: #163a3f;
+  --good: #6fd39a; --good-soft: #17352a; --warn: #f0bd5e; --warn-soft: #3a2e14; --bad: #f08a83; --bad-soft: #3f1f1d;
+  color-scheme: dark }
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-body); margin: 0 }
+.wrap { max-width: 1280px; margin: 0 auto; padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 22px }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em }
+h1 { font-size: 1.75rem } h2 { font-size: 1.2rem } h3 { font-size: 1rem }
+.mono { font-family: var(--f-mono); font-size: .86em }
+.muted { color: var(--muted) }
+.eyebrow { font: 600 .72rem/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted) }
+header.top { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: flex-end; justify-content: space-between;
+  border-bottom: 2px solid var(--ink); padding-bottom: 14px }
+header.top .meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: .85rem; color: var(--muted) }
+.regs { display: flex; flex-wrap: wrap; gap: 8px }
+.reg { display: flex; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 10px; font-size: .85rem }
+.pill { font: 600 .72rem/1 var(--f-body); padding: 4px 8px; border-radius: 99px; white-space: nowrap }
+.pill.good { background: var(--good-soft); color: var(--good) } .pill.warn { background: var(--warn-soft); color: var(--warn) }
+.pill.bad { background: var(--bad-soft); color: var(--bad) } .pill.info { background: var(--accent-soft); color: var(--accent) }
+.banner { border-left: 4px solid var(--bad); background: var(--bad-soft); color: var(--ink); padding: 12px 16px; border-radius: 0 6px 6px 0 }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px }
+.kpi .v { font: 600 1.45rem/1.15 var(--f-display); font-variant-numeric: tabular-nums }
+.kpi .s { font-size: .8rem; color: var(--muted) }
+nav.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line) }
+nav.tabs a { text-decoration: none; color: var(--muted); padding: 9px 14px; border-radius: 6px 6px 0 0; font-weight: 500;
+  border: 1px solid transparent; border-bottom: none; margin-bottom: -1px }
+nav.tabs a:hover { color: var(--ink) }
+nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--surface); border-color: var(--line); font-weight: 600 }
+nav.tabs a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+section.view { display: flex; flex-direction: column; gap: 16px }
+.sumline { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline }
+.sumline b { font-variant-numeric: tabular-nums }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+input[type="search"], select { font: inherit; font-size: .9rem; padding: 7px 10px; border: 1px solid var(--line);
+  border-radius: 6px; background: var(--surface); color: var(--ink); min-width: 0 }
+input[type="search"] { flex: 1 1 220px; max-width: 360px }
+button { font: 500 .88rem var(--f-body); padding: 7px 12px; border-radius: 6px; border: 1px solid var(--accent);
+  background: var(--accent); color: var(--surface); cursor: pointer }
+button.ghost { background: transparent; color: var(--accent) }
+.tablebox { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px }
+table { border-collapse: collapse; width: 100%; font-size: .86rem; min-width: 980px }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top }
+th { font: 600 .74rem/1.25 var(--f-body); letter-spacing: .04em; text-transform: uppercase; color: var(--muted);
+  background: var(--surface); position: sticky; top: 0; cursor: pointer; user-select: none; white-space: nowrap }
+th[data-sort="asc"]::after { content: " ▲" } th[data-sort="desc"]::after { content: " ▼" }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap }
+td.g { font-family: var(--f-mono); font-size: .8rem; white-space: nowrap }
+tr.sub td { background: var(--accent-soft); font-weight: 600 }
+tfoot td { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: none }
+.issue { font-size: .8rem; color: var(--muted); min-width: 300px; max-width: 52ch }
+.empty { padding: 18px; color: var(--muted) }
+footer { font-size: .8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px }
+.toast { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 6px; font-size: .85rem }
+@media (max-width: 560px) { h1 { font-size: 1.4rem } .kpi .v { font-size: 1.2rem } }
+@media (prefers-reduced-motion: no-preference) { nav.tabs a { transition: color .15s } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+      <span class="eyebrow">Inward supplies · GSTR-2B check</span>
+      <h1 id="h-name">Caliber GST Register</h1>
+      <div class="meta" id="h-meta"></div>
+    </div>
+    <div class="regs" id="regs"></div>
+  </header>
+  <div class="banner" id="banner" hidden></div>
+  <div class="kpis" id="kpis"></div>
+  <nav class="tabs" id="tabs" aria-label="Views"></nav>
+  <main id="views"></main>
+  <footer id="foot"></footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const inr = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = v => (v === null || v === undefined || v === "") ? "" : inr.format(v);
+const moneyNz = v => v ? inr.format(v) : "";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const sum = (rows, k) => rows.reduce((a, r) => a + (Number(r[k]) || 0), 0);
+const STATE_SHORT = { "29": "Karnataka", "33": "Tamil Nadu" };
+
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2200); }
+
+function statusPill(s) {
+  const cls = s === "Verified" ? "good" : s.startsWith("Duplicate") ? "info" : s.startsWith("Review") ? "warn" : "bad";
+  return `<span class="pill ${cls}">${esc(s)}</span>`;
+}
+
+const COLS = [
+  ["supplier_gstin", "GSTIN of supplier", "g"], ["supplier_name", "Trade/Legal name"], ["invoice_number", "Invoice number"],
+  ["invoice_date", "Invoice date"], ["invoice_value", "Invoice value", "num"], ["pos", "Place of supply"],
+  ["rcm", "RCM"], ["taxable", "Taxable value", "num"], ["igst", "Integrated tax", "num"], ["cgst", "Central tax", "num"],
+  ["sgst", "State/UT tax", "num"], ["cess", "Cess", "num"]];
+const MONEYK = ["invoice_value", "taxable", "igst", "cgst", "sgst", "cess"];
+
+function table(rows, opts) {
+  const cols = COLS.concat(opts.extra || []);
+  const head = cols.map(([k, l, c]) => `<th data-k="${k}" class="${c === "num" ? "num" : ""}" scope="col">${esc(l)}</th>`).join("");
+  let body = "", lastSup = null, group = [];
+  const flush = () => {
+    if (opts.subtotals && group.length > 1) {
+      body += `<tr class="sub"><td class="g">${esc(lastSup)}</td><td colspan="3">Subtotal · ${group.length} invoices</td>` +
+        cols.slice(4).map(([k, , c]) => c === "num" ? `<td class="num">${moneyNz(sum(group, k))}</td>` : "<td></td>").join("") + "</tr>";
+    }
+    group = [];
+  };
+  rows.forEach(r => {
+    if (opts.subtotals && r.supplier_gstin !== lastSup) { flush(); lastSup = r.supplier_gstin; }
+    group.push(r);
+    body += "<tr>" + cols.map(([k, , c]) => {
+      const v = r[k];
+      if (k === "status") return `<td>${statusPill(v || "")}</td>`;
+      if (k === "issues") return `<td class="issue">${esc(v)}</td>`;
+      if (c === "num") return `<td class="num">${money(v)}</td>`;
+      if (c === "g") return `<td class="g">${esc(v)}</td>`;
+      return `<td>${esc(v)}</td>`;
+    }).join("") + "</tr>";
+  });
+  flush();
+  const foot = rows.length ? `<tfoot><tr><td colspan="4">Total · ${rows.length} invoices</td>` +
+    cols.slice(4).map(([k, , c]) => c === "num" ? `<td class="num">${moneyNz(sum(rows, k))}</td>` : "<td></td>").join("") + "</tr></tfoot>" : "";
+  return `<div class="tablebox"><table><thead><tr>${head}</tr></thead><tbody>${body ||
+    `<tr><td class="empty" colspan="${cols.length}">${esc(opts.empty || "No invoices")}</td></tr>`}</tbody>${foot}</table></div>`;
+}
+
+function tsv(rows, cols) {
+  return [cols.map(c => c[1]).join("\t")].concat(rows.map(r => cols.map(([k]) => r[k] ?? "").join("\t"))).join("\n");
+}
+
+function copyRows(rows, cols, label) {
+  const text = tsv(rows, cols);
+  const done = () => toast(`${label} copied - paste into Excel`);
+  try {
+    navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  } catch (e) { fallbackCopy(text, done); }
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select();
+  let ok = false; try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  ta.remove(); ok ? done() : toast("Copy was blocked by the browser - select the table and copy it instead");
+}
+
+function sortable(root, rows, render) {
+  root.querySelectorAll("th[data-k]").forEach(th => th.addEventListener("click", () => {
+    const k = th.dataset.k, dir = th.dataset.sort === "asc" ? "desc" : "asc";
+    rows.sort((a, b) => {
+      const x = a[k] ?? "", y = b[k] ?? "";
+      const r = (typeof x === "number" || typeof y === "number") ? (Number(x) || 0) - (Number(y) || 0) : String(x).localeCompare(String(y));
+      return dir === "asc" ? r : -r;
+    });
+    render(k, dir);
+  }));
+}
+
+function gstinView(reg) {
+  const fin = DATA.final.filter(r => r.caliber_gstin === reg.gstin);
+  const pend = DATA.pending.filter(r => r.caliber_gstin === reg.gstin);
+  const sec = document.createElement("section");
+  sec.className = "view"; sec.id = "v-gstin-" + reg.gstin;
+  const itc = sum(fin, "igst") + sum(fin, "cgst") + sum(fin, "sgst") + sum(fin, "cess");
+  const sups = new Set(fin.map(r => r.supplier_gstin)).size;
+  sec.innerHTML = `
+    <div class="sumline"><h2>${esc(reg.gstin)} · ${esc(reg.state)}</h2>${statusPill(reg.status === "Verified" ? "Verified" : "Review: " + reg.status)}</div>
+    <div class="sumline muted"><span><b>${fin.length}</b> final invoices from <b>${sups}</b> suppliers</span>
+      <span>Taxable <b>₹ ${money(sum(fin, "taxable"))}</b></span><span>ITC <b>₹ ${money(itc)}</b></span>
+      <span>Invoice value <b>₹ ${money(sum(fin, "invoice_value"))}</b></span></div>
+    <div class="tools">
+      <label class="eyebrow" for="q-${reg.gstin}">Search</label>
+      <input type="search" id="q-${reg.gstin}" placeholder="Supplier GSTIN, name or invoice no.">
+      <button type="button" id="c-${reg.gstin}">Copy for Excel</button>
+    </div>
+    <div class="fin"></div>
+    <h3>Billed to ${esc(reg.gstin)} but not in Final · ${pend.length}</h3>
+    <p class="muted" style="margin:0">Check the reason before claiming ITC. Correct these in the app (Document Review) and rebuild.</p>
+    <div class="pend"></div>`;
+  const finBox = sec.querySelector(".fin"), pendBox = sec.querySelector(".pend");
+  let shown = fin.slice(), sortedBy = null;
+  const draw = (k, dir) => {
+    sortedBy = k;
+    finBox.innerHTML = table(shown, { subtotals: !k || k === "supplier_gstin", empty: "No final invoices for this registration yet" });
+    if (k) { const th = finBox.querySelector(`th[data-k="${k}"]`); if (th) th.dataset.sort = dir; }
+    sortable(finBox, shown, draw);
+  };
+  draw();
+  sec.querySelector("input").addEventListener("input", e => {
+    const q = e.target.value.trim().toLowerCase();
+    shown = fin.filter(r => !q || [r.supplier_gstin, r.supplier_name, r.invoice_number].some(v => String(v || "").toLowerCase().includes(q)));
+    draw();
+  });
+  sec.querySelector("button").addEventListener("click", () => copyRows(shown, COLS, `${shown.length} invoices`));
+  pendBox.innerHTML = table(pend, { extra: [["status", "Status"], ["issues", "Reason"]], empty: "Nothing pending for this registration" });
+  return sec;
+}
+
+function pendingView() {
+  const sec = document.createElement("section"); sec.className = "view"; sec.id = "v-pending";
+  const counts = {};
+  DATA.pending.forEach(r => (r.rules || []).forEach(x => counts[x] = (counts[x] || 0) + 1));
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, n]) =>
+    `<span class="pill ${k.startsWith("ERROR") ? "bad" : "warn"}">${esc(k.replace(/^(ERROR|WARNING) /, ""))} · ${n}</span>`).join(" ");
+  sec.innerHTML = `<h2>Pending review · ${DATA.pending.length}</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">${top || '<span class="muted">No open issues</span>'}</div>
+    ${table(DATA.pending, { extra: [["caliber_gstin", "Caliber GSTIN", "g"], ["status", "Status"], ["issues", "Reason"]], empty: "Nothing pending" })}`;
+  return sec;
+}
+
+function dupView() {
+  const sec = document.createElement("section"); sec.className = "view"; sec.id = "v-duplicates";
+  const rows = DATA.duplicates.map(d => `<tr><td class="g">${esc(d.group)}</td><td>${esc(d.level)}</td><td>${esc(d.number)}</td>
+    <td class="g">${esc(d.supplier)}</td><td>${esc(d.primary)}</td><td>${esc(d.candidate)}</td><td class="issue">${esc(d.action)}</td></tr>`).join("");
+  sec.innerHTML = `<h2>Duplicates excluded · ${DATA.duplicates.length}</h2>
+    <p class="muted" style="margin:0">Copies are kept out of Final so no invoice is counted twice. No file is deleted.</p>
+    <div class="tablebox"><table><thead><tr><th>Group</th><th>Match</th><th>Invoice no.</th><th>Supplier GSTIN</th><th>Kept (primary)</th><th>Excluded copy</th><th>Action</th></tr></thead>
+    <tbody>${rows || '<tr><td class="empty" colspan="7">No duplicates</td></tr>'}</tbody></table></div>`;
+  return sec;
+}
+
+function render() {
+  if (!DATA) { document.getElementById("views").innerHTML = '<p class="empty">No register data embedded. Build this page with dashboard.py.</p>'; return; }
+  document.getElementById("h-name").textContent = DATA.company + " · GST Register";
+  document.getElementById("h-meta").innerHTML = `<span>Batch <span class="mono">${esc(DATA.job_id)}</span></span>` +
+    `<span>Built ${esc(DATA.generated)}</span><span>${DATA.files} files · ${DATA.documents} documents</span><span>App ${esc(DATA.version)}</span>`;
+  document.getElementById("regs").innerHTML = DATA.registrations.map(r =>
+    `<div class="reg"><span class="mono">${esc(r.gstin)}</span><span>${esc(r.state)}</span>${statusPill(r.status === "Verified" ? "Verified" : r.status)}</div>`).join("");
+  const unver = DATA.registrations.filter(r => r.status !== "Verified");
+  if (unver.length) {
+    const b = document.getElementById("banner"); b.hidden = false;
+    b.innerHTML = `<b>Final is incomplete.</b> ${unver.map(r => esc(r.gstin)).join(", ")} ${unver.length > 1 ? "are" : "is"} not verified in the Caliber GST Master, so invoices billed to ${unver.length > 1 ? "them" : "it"} wait in Pending review. Verify in the app and rebuild this page.`;
+  }
+  const fin = DATA.final, itc = sum(fin, "igst") + sum(fin, "cgst") + sum(fin, "sgst") + sum(fin, "cess");
+  const k = [["Final invoices", fin.length, `${new Set(fin.map(r => r.supplier_gstin)).size} suppliers`],
+    ["Taxable value", "₹ " + money(sum(fin, "taxable")), "verified inward invoices"],
+    ["Input tax credit", "₹ " + money(itc), `IGST ${money(sum(fin, "igst"))} · CGST ${money(sum(fin, "cgst"))} · SGST ${money(sum(fin, "sgst"))}`],
+    ["Pending review", DATA.pending.length, "need a person before ITC"],
+    ["Duplicates excluded", DATA.duplicates.length, `${DATA.non_tax} non-tax documents set aside`]];
+  document.getElementById("kpis").innerHTML = k.map(([l, v, s]) => `<div class="kpi"><span class="eyebrow">${esc(l)}</span><span class="v">${esc(v)}</span><span class="s">${esc(s)}</span></div>`).join("");
+
+  const views = document.getElementById("views"), tabs = document.getElementById("tabs");
+  const items = DATA.registrations.map(r => ["gstin-" + r.gstin, `${r.state} · ${r.gstin.slice(0, 2)}`, gstinView(r)]);
+  items.push(["pending", `Pending review (${DATA.pending.length})`, pendingView()]);
+  items.push(["duplicates", `Duplicates (${DATA.duplicates.length})`, dupView()]);
+  items.forEach(([id, label, el]) => { el.hidden = true; views.appendChild(el);
+    tabs.insertAdjacentHTML("beforeend", `<a href="#${id}" data-v="${id}">${esc(label)}</a>`); });
+  const show = () => {
+    const want = location.hash.slice(1), id = items.some(i => i[0] === want) ? want : items[0][0];
+    items.forEach(([vid, , el]) => el.hidden = vid !== id);
+    tabs.querySelectorAll("a").forEach(a => a.dataset.v === id ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  };
+  window.addEventListener("hashchange", show); show();
+  document.getElementById("foot").textContent = "Columns follow the GSTR-2B B2B table on the GST portal. Only Verified inward tax invoices are counted in Final; quotations, proformas, e-way bills, duplicates and unverified records are excluded. Built from " + DATA.source + ".";
+}
+render();
+</script>

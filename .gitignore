@@ -1,0 +1,10 @@
+# local data - invoices, database, exports never go to GitHub
+data/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.streamlit/secrets.toml
+site/
+*.db

@@ -1,0 +1,14 @@
+# Python 3.10 - 3.14 (audit re-test: 3.12 Linux; your install: 3.14 Windows)
+streamlit>=1.40
+pandas>=2.1
+openpyxl>=3.1
+xlrd>=2.0          # legacy .xls
+pymupdf>=1.24      # PDF text + page rendering
+pdfplumber>=0.11   # optional table helper (not required by the core pipeline)
+pytesseract>=0.3.10
+opencv-python-headless>=4.8
+Pillow>=10.0
+numpy>=1.26
+rapidfuzz>=3.0
+python-docx>=1.1
+pytest>=8.0        # tests only
